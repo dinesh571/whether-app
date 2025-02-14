@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>climapredict</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 90%;
+            width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #weather-result, #prediction-result {
+            margin-top: 20px;
+            text-align: left;
+        }
+        @media (max-width: 600px) {
+            .container {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="ClimaPredict logo for website.png" alt="ClimaPredict logo for website.png" style="width: 100px; height: auto; margin-bottom: 10px;">
+        <h1>Welcome to ClimaPredict</h1>
+        <input type="text" id="city" placeholder="Enter city name">
+        <button onclick="get_weather_data()">Get Weather</button>
+        <div id="weather-result"></div>
+        <hr>
+        <h2>Predict Temperature</h2>
+        <input type="number" id="wind_speed" placeholder="Wind Speed (m/s)">
+        <input type="number" id="humidity" placeholder="Humidity (%)">
+        <button onclick="predictTemperature()">Predict</button>
+        <div id="prediction-result"></div>
+    </div>
+
+    <script>
+        function get_weather_data() {
+            const city = document.getElementById('city').value;
+            fetch(`/weather?city=${city}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('weather-result').innerHTML = `<p style='color:red;'>${data.error}</p>`;
+                        return;
+                    }
+                    document.getElementById('weather-result').innerHTML = `
+                        <h3>Weather in ${city}</h3>
+                        <p><strong>Temperature:</strong> ${data.temperature_c}°C / ${data.temperature_f}°F</p>
+                        <p><strong>Humidity:</strong> ${data.humidity}%</p>
+                        <p><strong>Wind Speed:</strong> ${data.wind_speed} m/s</p>
+                        <p><strong>Condition:</strong> ${data.weather_condition}</p>
+                    `;
+                })
+                .catch(error => console.error('Error fetching weather:', error));
+        }
+
+        function predictTemperature() {
+            const windSpeed = document.getElementById('wind_speed').value;
+            const humidity = document.getElementById('humidity').value;
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ wind_speed: windSpeed, humidity: humidity })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('prediction-result').innerHTML = `
+                    <h3>Predicted Temperature</h3>
+                    <p>${data.temp_c.toFixed(2)}°C / ${data.temp_f.toFixed(2)}°F</p>
+                `;
+            })
+            .catch(error => console.error('Error predicting temperature:', error));
+        }
+    </script>
+</body>
+</html>
